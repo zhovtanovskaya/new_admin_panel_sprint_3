@@ -50,6 +50,20 @@ class TestFilmWork(TestCase):
     def test_one_writer_name(self):
         self.assertEqual(['Minta Durfee'], self.film_work.writers_names)
 
+    def test_one_actor(self):
+        actor = {
+            'id': '26e83050-29ef-4163-a99d-b546cac208f8',
+            'name': 'Mark Hamill',
+        }
+        self.assertEqual(actor, self.film_work.actors[0])
+
+    def test_one_writer(self):
+        writer = {
+            'id': '139e8f31-b198-4127-a4a0-958e35c328bc',
+            'name': 'Minta Durfee',
+        }
+        self.assertEqual(writer, self.film_work.writers[0])
+
 
 if __name__ == '__main__':
     main()

@@ -3,6 +3,7 @@
 import uuid
 from dataclasses import dataclass, field, fields
 from datetime import datetime
+from itertools import chain
 
 from dateutil.parser import parse
 
@@ -39,16 +40,33 @@ class FilmWork(DBData):
 
     def __post_init__(self):
         super().__post_init__()
-        # Разделить self.persons по ролям персон.
-        role_to_attr_mapping = {
+        # Разделить self.persons на списки имен и объектов по ролям персон.
+        role_to_names_map = {
             'director': 'director',
             'actor': 'actors_names',
             'writer': 'writers_names'
         }
-        # Проинициализировать списки имен.
-        for _, attr in role_to_attr_mapping.items():
-            setattr(self, attr, [])
-        # Заполнить списки имен.
+        role_to_objs_map = {
+            'actor': 'actors',
+            'writer': 'writers'
+        }
+        # Заполнить списки.
         for person in self.persons:
-            attr = role_to_attr_mapping[person['role']]
-            getattr(self, attr).append(person['name'])
+            role = person['role']
+            # Заполнить списки имен.
+            name_attr = role_to_names_map[role]
+            self._append(name_attr, person['name'])
+            # Заполнить списки вложенных объектов.
+            objs_attr = role_to_objs_map.get(role)
+            if objs_attr:
+                obj = {
+                    'id': person['id'],
+                    'name': person['name'],
+                }
+                self._append(objs_attr, obj)
+
+    def _append(self, list_attr, obj):
+        if not hasattr(self, list_attr):
+            setattr(self, list_attr, [])
+        getattr(self, list_attr).append(obj)
+
