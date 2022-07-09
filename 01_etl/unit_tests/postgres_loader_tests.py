@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from extract import PostgresLoader, create_connection
+from postgres_loader import PostgresLoader, create_connection
 from settings import POSTGRES_DB
 
 
@@ -13,7 +13,7 @@ class Test(TestCase):
         row = next(self.loader.load())
         from pprint import PrettyPrinter
         pp = PrettyPrinter(indent=4)
-        pp.pprint(row)
+        pp.pprint(dict(**row))
 
 
 if __name__ == '__main__':
