@@ -18,7 +18,7 @@ def create_connection(host: dict) -> Elasticsearch:
 
 
 @contextmanager
-def postgres_connection(host: dict) -> Elasticsearch:
+def elastic_search_connection(host: dict) -> Elasticsearch:
     """Создает подключение к ElasticSearch, которое закроет на выходе.
 
     Args:
