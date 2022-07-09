@@ -11,7 +11,6 @@ class TestFilmWork(TestCase):
             title=' Star Wars: Episode IV - A New Hope',
             description='The Imperial Forces...',
             type='movie',
-            creation_date='2021-06-16',
             created='2021-06-16 20:14:09.313086+00',
             modified='2021-06-16 20:14:09.313086+00',
             genres=['Action', 'Adventure', 'Fantasy', 'Sci-Fi'],
