@@ -36,3 +36,11 @@ class FilmWork(DBData):
     file_path: str = ''
     rating: float = field(default=0.0)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
+
+    def __post_init__(self):
+        super().__post_init__()
+        # Разделить self.persons по ролям персон.
+        self.director = []
+        for person in self.persons:
+            if person['role'] == 'director':
+                self.director.append(person['name'])
