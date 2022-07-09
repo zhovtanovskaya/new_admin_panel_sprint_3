@@ -29,6 +29,8 @@ class FilmWork(DBData):
     description: str
     type: str
     creation_date: str
+    genres: list[str]
+    persons: list[dict]
     created: datetime = field(default_factory=datetime.now)
     modified: datetime = field(default_factory=datetime.now)
     file_path: str = ''
