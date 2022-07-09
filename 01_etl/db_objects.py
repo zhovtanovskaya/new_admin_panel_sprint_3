@@ -1,5 +1,6 @@
 """Python-представление данных о фильмах."""
 
+import dataclasses
 import uuid
 from dataclasses import dataclass, field, fields
 from datetime import datetime
@@ -33,11 +34,11 @@ class FilmWork(DBData):
     persons: list[dict]
     created: datetime = field(default_factory=datetime.now)
     modified: datetime = field(default_factory=datetime.now)
-    file_path: str = ''
     rating: float = field(default=0.0)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Проинициализировать атрибуты фильма, нужные для ElasticSearch."""
         super().__post_init__()
         # Разделить self.persons на списки имен и объектов по ролям персон.
         role_to_names_map = {
@@ -64,8 +65,32 @@ class FilmWork(DBData):
                 }
                 self._append(objs_attr, obj)
 
-    def _append(self, list_attr, obj):
+    def _append(self, list_attr: str, obj) -> None:
+        """Пополнить или проинициализировать атрибут-список."""
         if not hasattr(self, list_attr):
             setattr(self, list_attr, [])
         getattr(self, list_attr).append(obj)
+
+    def as_document(self) -> dict:
+        """Получить фильм как документ для индекса ElasticSearch.
+
+        Returns:
+            Документ ElasticSearch в виде dict.
+        """
+        doc_mapping = {
+            'id': 'id',
+            'imdb_rating': 'rating',
+            'genre': 'genres',
+            'title': 'title',
+            'description': 'description',
+            'director': 'director',
+            'actors_names': 'actors_names',
+            'writers_names': 'writers_names',
+            'actors': 'actors',
+            'writers': 'writers',
+        }
+        doc = {}
+        for doc_attr, obj_attr in doc_mapping.items():
+            doc[doc_attr] = getattr(self, obj_attr, [])
+        return doc
 
