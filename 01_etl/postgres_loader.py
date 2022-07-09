@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 import psycopg2
 from psycopg2.extensions import connection as pg_connection
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, RealDictRow
 
 
 def create_connection(dsl: dict) -> pg_connection:
@@ -55,7 +55,15 @@ class PostgresLoader:
         with self.connection.cursor() as cursor:
             cursor.execute(sql, values)
 
-    def load(self, fetch_size=50):
+    def load(self, fetch_size=50) -> RealDictRow:
+        """Получить фильм из PostgreSQL.
+
+        Args:
+            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
+
+        Yields:
+            Строка, представляющая фильм с жанрами и персонами.
+        """
         sql = """
             SELECT
                 fw.id,
@@ -82,8 +90,7 @@ class PostgresLoader:
             LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
             LEFT JOIN content.genre g ON g.id = gfw.genre_id
             GROUP BY fw.id
-            ORDER BY fw.modified
-            LIMIT 100;
+            ORDER BY fw.modified;
         """
         rows = self._execute_sql(sql, ())
         with self.connection.cursor() as curs:
@@ -91,4 +98,3 @@ class PostgresLoader:
             while data := curs.fetchmany(fetch_size):
                 for row in data:
                     yield row
-    
