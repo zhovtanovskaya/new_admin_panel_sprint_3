@@ -1,17 +1,13 @@
 from unittest import TestCase, main
 
+import settings
 from elastic_search_saver import ElasticSearchSaver, create_connection
-
-ELASTIC_SEARCH_TEST_HOST = {
-    'host': 'localhost', 
-    'port': 9200,
-}
 
 
 class Test(TestCase):
 
     def setUp(self):
-        self.client = create_connection(ELASTIC_SEARCH_TEST_HOST)
+        self.client = create_connection(settings.ELASTIC_TEST_HOST)
         self.ess = ElasticSearchSaver(self.client)
 
     def tearDown(self):
