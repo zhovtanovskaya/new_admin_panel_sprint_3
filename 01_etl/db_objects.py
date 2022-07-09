@@ -40,7 +40,15 @@ class FilmWork(DBData):
     def __post_init__(self):
         super().__post_init__()
         # Разделить self.persons по ролям персон.
-        self.director = []
+        role_to_attr_mapping = {
+            'director': 'director',
+            'actor': 'actors_names',
+            'writer': 'writers_names'
+        }
+        # Проинициализировать списки имен.
+        for _, attr in role_to_attr_mapping.items():
+            setattr(self, attr, [])
+        # Заполнить списки имен.
         for person in self.persons:
-            if person['role'] == 'director':
-                self.director.append(person['name'])
+            attr = role_to_attr_mapping[person['role']]
+            getattr(self, attr).append(person['name'])

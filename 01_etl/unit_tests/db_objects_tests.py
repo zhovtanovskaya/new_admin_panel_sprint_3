@@ -41,8 +41,14 @@ class TestFilmWork(TestCase):
     def test_updated_at_is_datetime(self):
         self.assertEqual(datetime, type(self.film_work.modified))
 
-    def test_director(self):
+    def test_one_director(self):
         self.assertEqual(['George Lucas'], self.film_work.director)
+
+    def test_one_actor_name(self):
+        self.assertEqual(['Mark Hamill'], self.film_work.actors_names)
+
+    def test_one_writer_name(self):
+        self.assertEqual(['Minta Durfee'], self.film_work.writers_names)
 
 
 if __name__ == '__main__':
