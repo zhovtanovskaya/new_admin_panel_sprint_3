@@ -21,7 +21,7 @@ class JsonFileStorage(BaseStorage):
 
     def save_state(self, state: dict) -> None:
         with open(self.file_path, 'w') as f:
-            f.write(json.dumps(state))
+            f.write(json.dumps(state, default=str))
 
     def retrieve_state(self) -> dict:
         with open(self.file_path) as f:
