@@ -27,3 +27,4 @@ ELASTIC_TEST_HOST = {
     'host': os.getenv('ELASTIC_TEST_HOST'), 
     'port': os.getenv('ELASTIC_TEST_PORT'),
 }
+STATE_FILE = './state.json'
