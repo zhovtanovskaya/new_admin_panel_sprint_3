@@ -39,27 +39,40 @@ def postgres_connection(dsl: dict):
 class PostgresLoader:
     """Класс, загружающий фильмы из PostgreSQL."""
 
+    EPOCH = '1970-01-01'
+
     def __init__(self, connection: pg_connection):
+        """Проинициализировать соединение.
+
+        Args:
+            connection: Подключение к PostgreSQL.
+        """
         self.connection = connection
 
-    def _execute_sql(self, sql: str, values: tuple) -> None:
+    def _execute_sql(
+            self, sql: str, values: tuple, fetch_size: int = 50,
+            ) -> RealDictRow:
         """Запустить SQL.
 
         Args:
             sql: SQL-выражение.
             values: Значения для вставки в SQL-выражение.
+            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
 
-        Raises:
-            psycopg2.Error: В случае ошибки при SQL-вызове.
+        Yields:
+            Строка результата SQL.
         """
         with self.connection.cursor() as cursor:
             cursor.execute(sql, values)
+            while rows := cursor.fetchmany(fetch_size):
+                for row in rows:
+                    yield row
 
-    def load(self, fetch_size=50) -> RealDictRow:
+    def load(self, since: str = EPOCH) -> RealDictRow:
         """Получить фильм из PostgreSQL.
 
         Args:
-            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
+            since: Получить строки, у которых дата правки больше строго since.
 
         Yields:
             Строка, представляющая фильм с жанрами и персонами.
@@ -89,12 +102,11 @@ class PostgresLoader:
             LEFT JOIN content.person p ON p.id = pfw.person_id
             LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
             LEFT JOIN content.genre g ON g.id = gfw.genre_id
+            WHERE fw.modified > %s
             GROUP BY fw.id
             ORDER BY fw.modified;
         """
-        rows = self._execute_sql(sql, ())
-        with self.connection.cursor() as curs:
-            curs.execute(sql)
-            while data := curs.fetchmany(fetch_size):
-                for row in data:
-                    yield row
+        values = (since,)
+        rows = self._execute_sql(sql, values)
+        for row in rows:
+            yield row
