@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 import settings
-from elastic_search_saver import ElasticSearchSaver, create_connection
+from load.elastic_search_saver import ElasticSearchSaver, create_connection
 
 
 class Test(TestCase):

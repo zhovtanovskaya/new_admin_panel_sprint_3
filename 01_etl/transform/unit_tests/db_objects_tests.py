@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest import TestCase, main
 
-from db_objects import FilmWork
+from transform.db_objects import FilmWork
 
 
 class TestFilmWork(TestCase):

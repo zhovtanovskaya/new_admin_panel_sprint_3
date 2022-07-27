@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from postgres_loader import PostgresLoader, create_connection
+from extract.postgres_loader import PostgresLoader, create_connection
 from settings import POSTGRES_DB
 
 
