@@ -1,13 +1,14 @@
 """Основной модуль для импорта кино из PostgreSQL в ElasticSearch."""
 
 import settings
-from db_objects import FilmWork
-from elastic_search_saver import ElasticSearchSaver, elastic_search_connection
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
-from postgres_loader import PostgresLoader, postgres_connection
+from extract.postgres_loader import PostgresLoader, postgres_connection
+from load.elastic_search_saver import (ElasticSearchSaver,
+                                       elastic_search_connection)
 from psycopg2.extensions import connection as pg_connection
 from storage import JsonFileStorage, State
+from transform.db_objects import FilmWork
 
 
 def load(
