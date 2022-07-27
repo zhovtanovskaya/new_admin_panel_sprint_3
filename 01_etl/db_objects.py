@@ -43,11 +43,11 @@ class FilmWork(DBData):
         role_to_names_map = {
             'director': 'director',
             'actor': 'actors_names',
-            'writer': 'writers_names'
+            'writer': 'writers_names',
         }
         role_to_objs_map = {
             'actor': 'actors',
-            'writer': 'writers'
+            'writer': 'writers',
         }
         # Заполнить списки.
         for person in self.persons:
