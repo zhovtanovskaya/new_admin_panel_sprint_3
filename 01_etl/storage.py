@@ -24,9 +24,15 @@ class JsonFileStorage(BaseStorage):
             f.write(json.dumps(state, default=str))
 
     def retrieve_state(self) -> dict:
-        with open(self.file_path) as f:
-            state = f.read()
-        return json.loads(state)
+        try:
+            with open(self.file_path) as f:
+                state = f.read()
+        except FileNotFoundError:
+            return {}
+        try:
+            return json.loads(state)
+        except json.decoder.JSONDecodeError:
+            return {}
 
 
 class State:
