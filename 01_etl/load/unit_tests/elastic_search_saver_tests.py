@@ -17,9 +17,14 @@ class Test(TestCase):
         doc = {
             'id': '24eafcd7-1018-4951-9e17-583e2554ef0a'
         }
-        self.assertIsNone(self.ess.get(doc['id']))
         self.ess.save(doc)
-        self.assertIsNotNone(self.ess.get(doc['id']))
+
+    def test_updates_document(self):
+        doc = {
+            'id': '24eafcd7-1018-4951-9e17-583e2554ef0a'
+        }
+        self.ess.save(doc)
+        self.ess.save(doc)
 
 
 if __name__ == '__main__':
