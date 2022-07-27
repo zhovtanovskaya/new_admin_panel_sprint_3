@@ -106,7 +106,7 @@ class PostgresLoader:
             GROUP BY fw.id
             ORDER BY fw.modified;
         """
-        values = (since,)
+        values = (since or self.EPOCH,)
         rows = self._execute_sql(sql, values)
         for row in rows:
             yield row
