@@ -1,11 +1,8 @@
 import time
 from functools import wraps
 
-from elasticsearch.exceptions import ConnectionError
-from psycopg2 import OperationalError
 
-
-def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10):
+def backoff(exceptions, start_sleep_time=0.1, factor=2, border_sleep_time=10):
     """
     Функция для повторного выполнения функции через некоторое время, если
     возникла ошибка.  Использует наивный экспоненциальный рост времени
@@ -30,7 +27,7 @@ def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10):
             while True:
                 try:
                     return func(*args, **kwargs)
-                except (OperationalError, ConnectionError) as e:
+                except exceptions as e:
                     sleep_time = sleep_time * factor
                     if sleep_time > border_sleep_time:
                         sleep_time = border_sleep_time
