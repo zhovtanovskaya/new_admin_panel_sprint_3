@@ -1,6 +1,7 @@
 import time
 from functools import wraps
 
+from elasticsearch.exceptions import ConnectionError
 from psycopg2 import OperationalError
 
 
@@ -25,14 +26,16 @@ def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10):
     def func_wrapper(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            sleep_time = start_sleep_time 
+            sleep_time = start_sleep_time
             while True:
                 try:
-                    func()
-                except OperationalError:
+                    return func(*args, **kwargs)
+                except (OperationalError, ConnectionError) as e:
                     sleep_time = sleep_time * factor
                     if sleep_time > border_sleep_time:
                         sleep_time = border_sleep_time
                     time.sleep(sleep_time)
+                    print(e)
+                    print(f'Waiting {sleep_time}...')
         return inner
     return func_wrapper
