@@ -2,16 +2,15 @@
 
 import time
 
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ConnectionError
-from psycopg2 import OperationalError
-from psycopg2.extensions import connection as pg_connection
-
 import settings
 from availability.backoff import backoff
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import ConnectionError
 from extract.postgres_loader import PostgresLoader, postgres_connection
 from load.elastic_search_saver import (ElasticSearchSaver,
                                        elastic_search_connection)
+from psycopg2 import OperationalError
+from psycopg2.extensions import connection as pg_connection
 from storage import JsonFileStorage, State
 from transform.db_objects import FilmWork
 
@@ -19,7 +18,7 @@ from transform.db_objects import FilmWork
 def load(
         pg_conn: pg_connection, es_client: Elasticsearch, state: State,
         ) -> None:
-    """Основной метод загрузки данных из SQLite в Postgres.
+    """Для каждой строки фильма из PostgreSQL создать документ в ElasticSearch.
 
     Args:
         pg_conn: подключение к базе приемнику данных в PostgreSQL.
@@ -41,7 +40,8 @@ def load(
 
 @backoff((OperationalError,))
 @backoff((ConnectionError,))
-def etl():
+def etl() -> None:
+    """Инициировать загрузку фильмов из PostgreSQL в ElasticSearch."""
     with (
         postgres_connection(settings.POSTGRES_DB) as pg_conn,
         elastic_search_connection(settings.ELASTIC_HOST) as es_client,

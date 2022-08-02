@@ -22,7 +22,7 @@ def create_connection(dsl: dict) -> pg_connection:
 
 
 @contextmanager
-def postgres_connection(dsl: dict):
+def postgres_connection(dsl: dict) -> pg_connection:
     """Создает подключение к PostgreSQL, которое закроет на выходе.
 
     Args:
@@ -50,7 +50,7 @@ class PostgresLoader:
         self.connection = connection
 
     def _execute_sql(
-            self, sql: str, values: tuple, fetch_size: int = 50,
+            self, sql: str, values: tuple, fetch_size: int = 1,
             ) -> RealDictRow:
         """Запустить SQL.
 
@@ -69,7 +69,7 @@ class PostgresLoader:
                     yield row
 
     def load(self, since: str = EPOCH) -> RealDictRow:
-        """Получить фильм из PostgreSQL.
+        """Получить фильм из PostgreSQL один за другим.
 
         Args:
             since: Получить строки, у которых дата правки больше строго since.

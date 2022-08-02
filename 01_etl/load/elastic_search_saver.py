@@ -1,8 +1,10 @@
+"""Загрузка фильмов в Elastic Search."""
+
 import uuid
 from contextlib import contextmanager
+from typing import Union
 
 from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import NotFoundError
 
 
@@ -35,9 +37,15 @@ def elastic_search_connection(host: dict) -> Elasticsearch:
 
 
 class ElasticSearchSaver:
+    """Загрузчик фильмов в индекс ElasticSearch."""
+
     def __init__(self, es_client: Elasticsearch):
+        """Инициализация атрибутов класса.
+
+        Args:
+            es_client: Подключение к ElasticSearch.
+        """
         self.client = es_client
-        self.indices = IndicesClient(self.client)
         self.index = 'movies'
 
     def save(self, document: dict) -> None:
@@ -46,21 +54,21 @@ class ElasticSearchSaver:
         Args:
             document: Документ для Elastic Search.
         """
-        status = self.client.update(
+        self.client.update(
             index=self.index,
             id=document['id'],
             doc=document,
             params={'doc_as_upsert': 'true'},
         )
 
-    def get(self, id: uuid.UUID) -> dict:
+    def get(self, id: uuid.UUID) -> Union[dict, None]:
         """Получить документ по id.
 
         Args:
             id: Идентификатор документа.
 
         Returns:
-            Документ Elastic Search.
+            Документ Elastic Search.  Или None, если он не существует.
         """
         try:
             return self.client.get(index=self.index, id=id)
