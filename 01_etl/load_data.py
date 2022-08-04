@@ -1,7 +1,5 @@
 """Основной модуль для импорта кино из PostgreSQL в ElasticSearch."""
 
-import time
-
 import settings
 from availability.backoff import backoff
 from elasticsearch import Elasticsearch
@@ -33,9 +31,6 @@ def load(
         doc = obj.as_document()
         saver.save(doc)
         state.set_state(SINCE_KEY, obj.modified)
-        print(obj.title)
-        time.sleep(2)
-        # break
 
 
 @backoff((OperationalError,))

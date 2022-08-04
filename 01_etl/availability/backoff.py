@@ -1,3 +1,5 @@
+"""Перезапуск функций в случае исключения."""
+
 import time
 from functools import wraps
 from typing import Any, Callable, TypeVar, Union
@@ -36,12 +38,10 @@ def backoff(
             while True:
                 try:
                     return func(*args, **kwargs)
-                except exceptions as e:
+                except exceptions:
                     sleep_time = sleep_time * factor
                     if sleep_time > border_sleep_time:
                         sleep_time = border_sleep_time
                     time.sleep(sleep_time)
-                    print(e)
-                    print(f'Waiting {sleep_time}...')
         return inner
     return func_wrapper
