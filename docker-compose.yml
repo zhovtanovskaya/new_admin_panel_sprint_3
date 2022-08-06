@@ -1,0 +1,31 @@
+version: '3'
+services:
+  etl:
+    build: ./01_etl
+    env_file:
+      - .env
+    networks:
+      - simple_project_network
+
+  postgres:
+    image: postgres:13
+    env_file:
+      - .env
+    volumes:
+      - $HOME/postgresql/data:/var/lib/postgresql/data
+    networks:
+      - simple_project_network
+
+  elastic:
+    image: docker.io/elastic/elasticsearch:7.7.0
+    environment:
+      - discovery.type=single-node
+    networks:
+      - simple_project_network
+
+networks:
+  simple_project_network:
+    driver: bridge
+
+volumes:
+  static_volume:
