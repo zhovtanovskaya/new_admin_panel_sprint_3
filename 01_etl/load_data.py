@@ -30,7 +30,10 @@ def load(
         obj = FilmWork(**row)
         doc = obj.as_document()
         saver.save(doc)
-        state.set_state(SINCE_KEY, obj.modified)
+        if saver.is_batch_ready():
+            saver.flush()
+            state.set_state(SINCE_KEY, obj.modified)
+    saver.flush()
 
 
 @backoff((OperationalError,))
