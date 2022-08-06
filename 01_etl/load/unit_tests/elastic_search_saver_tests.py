@@ -13,11 +13,20 @@ class Test(TestCase):
     def tearDown(self):
         self.client.close()
 
+    def test_caches_document(self):
+        doc = {
+            'id': '24eafcd7-1018-4951-9e17-583e2554ef0a'
+        }
+        self.ess.save(doc)
+        self.assertIsNone(self.ess.get(doc['id']))
+
     def test_creates_document(self):
         doc = {
             'id': '24eafcd7-1018-4951-9e17-583e2554ef0a'
         }
         self.ess.save(doc)
+        self.ess.flush()
+        self.assertIsNotNone(self.ess.get(doc['id']))
 
     def test_updates_document(self):
         doc = {

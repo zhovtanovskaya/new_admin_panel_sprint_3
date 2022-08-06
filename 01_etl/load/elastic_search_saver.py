@@ -2,9 +2,9 @@
 
 import uuid
 from contextlib import contextmanager
-from typing import Union
+from typing import Any, Union
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, helpers
 from elasticsearch.exceptions import NotFoundError
 
 
@@ -47,19 +47,27 @@ class ElasticSearchSaver:
         """
         self.client = es_client
         self.index = 'movies'
+        self._documents = []
 
-    def save(self, document: dict) -> None:
+    def save(self, document: dict) -> dict[str, Any]:
         """Создать или обновить документ.
 
         Args:
             document: Документ для Elastic Search.
         """
-        self.client.update(
-            index=self.index,
-            id=document['id'],
-            doc=document,
-            params={'doc_as_upsert': 'true'},
-        )
+        self._documents.append(document)
+
+    def flush(self):
+        def get_actions(documents):
+            for document in documents:
+                action = {
+                    "_index": self.index,
+                    '_op_type': 'index',
+                    "_id": document['id'],
+                    "_source": document,
+                }
+                yield action
+        return helpers.bulk(self.client, get_actions(self._documents))
 
     def get(self, id: uuid.UUID) -> Union[dict, None]:
         """Получить документ по id.
