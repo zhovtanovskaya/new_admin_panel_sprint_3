@@ -2,7 +2,7 @@
 
 import uuid
 from contextlib import contextmanager
-from typing import Any, Union
+from typing import Union
 
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch.exceptions import NotFoundError
@@ -44,13 +44,14 @@ class ElasticSearchSaver:
 
         Args:
             es_client: Подключение к ElasticSearch.
+            batch_size: Размер буфера для сохраняемых объектов.
         """
         self.client = es_client
         self.index = 'movies'
         self._documents = []
         self._batch_size = batch_size
 
-    def save(self, document: dict) -> dict[str, Any]:
+    def save(self, document: dict) -> None:
         """Создать или обновить документ.
 
         Args:
@@ -58,17 +59,23 @@ class ElasticSearchSaver:
         """
         self._documents.append(document)
 
-    def is_batch_ready(self):
+    def is_batch_ready(self) -> bool:
+        """Проверить заполнен ли буфер.
+
+        Returns:
+            Истина, если в буфере больше self._batch_size объектов.
+        """
         return len(self._documents) >= self._batch_size
 
-    def flush(self):
-        def get_actions(documents):
+    def flush(self) -> None:
+        """Сохранить все объекты из буфера в ElasticSearch."""
+        def get_actions(documents: list[dict]) -> dict:
             for document in documents:
                 action = {
-                    "_index": self.index,
+                    '_index': self.index,
                     '_op_type': 'index',
-                    "_id": document['id'],
-                    "_source": document,
+                    '_id': document['id'],
+                    '_source': document,
                 }
                 yield action
         helpers.bulk(self.client, get_actions(self._documents))
@@ -84,6 +91,6 @@ class ElasticSearchSaver:
             Документ Elastic Search.  Или None, если он не существует.
         """
         try:
-            return self.client.get(index=self.index, id=id)
+            return self.client.get(index=self.index, id=str(id))
         except NotFoundError:
             return
