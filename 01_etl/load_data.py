@@ -1,5 +1,6 @@
 """Основной модуль для импорта кино из PostgreSQL в ElasticSearch."""
 
+import time
 from elasticsearch.exceptions import ConnectionError
 from psycopg2 import OperationalError
 
@@ -44,4 +45,6 @@ def etl() -> None:
 
 
 if __name__ == '__main__':
-    etl()
+    while True:
+        etl()
+        time.sleep(settings.ETL_TIMEOUT)
