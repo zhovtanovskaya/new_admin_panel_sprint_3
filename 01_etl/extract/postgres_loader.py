@@ -1,17 +1,22 @@
 """Подключение и чтение из PostgreSQL."""
 
 from contextlib import contextmanager
+from collections.abc import Iterable
 
 import psycopg2
 from psycopg2.extensions import connection as pg_connection
 from psycopg2.extras import RealDictCursor, RealDictRow
 
+from storage import State
+
 
 class StateKeys:
+    """Ключи, которые содержат состояния загрузки данных в ElasticSearch."""
+
     FILM_WORK = 'film_work_since'
     PERSON = 'person_work_since'
     GENRE = 'genre_since'
-    
+
 
 def create_connection(dsl: dict) -> pg_connection:
     """Создать подключение к базе PostgreSQL.
@@ -47,16 +52,22 @@ class PostgresLoader:
 
     EPOCH = '1970-01-01'
 
-    def __init__(self, connection: pg_connection, state):
-        """Проинициализировать соединение.
+    def __init__(self, connection: pg_connection, state: State):
+        """Проинициализировать соединение и состояние.
 
         Args:
             connection: Подключение к PostgreSQL.
+            state: Хранилище, для сохранения состояния импорта фильмов.
         """
         self.connection = connection
         self.state = state
 
-    def load_all(self):
+    def load_all(self) -> RealDictRow:
+        """Получить все обновленные и новые фильмы.
+
+        Yields:
+            Строка базы данных с полной информацией о фильме.
+        """
         genre_since = self.state.get_state(StateKeys.GENRE) or self.EPOCH
         for ids, genre_since in self.ids_for_genre_since(genre_since):
             yield from self.get_film_works(ids)
@@ -70,9 +81,15 @@ class PostgresLoader:
             yield from self.get_film_works(ids)
             self.state.set_state(StateKeys.FILM_WORK, film_work_since)
 
-    def ids_for_film_work_since(
-        self, since: str = EPOCH,
-    ) -> list[RealDictRow]:
+    def ids_for_film_work_since(self, since: str = EPOCH) -> (list[str], str):
+        """Получить ID фильмов, отредактированных с указанного момента.
+
+        Args:
+            since: Получить фильмы, измененные после since.
+
+        Yields:
+            Список ID фильмов и самое раннее время правки этих фильмов.
+        """
         sql = """
             SELECT
                 fw.id,
@@ -85,10 +102,14 @@ class PostgresLoader:
         bunches = self._bunchify(self._execute_sql(sql, values))
         yield from self._split_bunch(bunches)
 
-    def ids_for_genre_since(
-        self, since: str = EPOCH,
-    ) -> list[RealDictRow]:
-        """
+    def ids_for_genre_since(self, since: str = EPOCH) -> (list[str], str):
+        """Получить ID фильмов, у которых изменился жанр.
+
+        Args:
+            since: Получить фильмы, жанры которых изменены после since.
+
+        Yields:
+            Список ID фильмов и самое раннее время правки жанра этих фильмов.
         """
         sql = """
             SELECT
@@ -104,9 +125,15 @@ class PostgresLoader:
         bunches = self._bunchify(self._execute_sql(sql, values))
         yield from self._split_bunch(bunches)
 
-    def ids_for_person_since(
-        self, since: str = EPOCH,
-    ) -> list[RealDictRow]:
+    def ids_for_person_since(self, since: str = EPOCH) -> (list[str], str):
+        """Получить ID фильмов, у которых изменились персоны.
+
+        Args:
+            since: Получить фильмы, персоны которых изменены после since.
+
+        Yields:
+            Список ID фильмов и самое раннее время правки персон этих фильмов.
+        """
         sql = """
             SELECT
                 pfw.film_work_id,
@@ -121,7 +148,15 @@ class PostgresLoader:
         bunches = self._bunchify(self._execute_sql(sql, values))
         yield from self._split_bunch(bunches)
 
-    def get_film_works(self, ids):
+    def get_film_works(self, ids: list[str]) -> RealDictRow:
+        """Получить фильмы с указанными ID.
+
+        Args:
+            ids: Список ID фильмов.
+
+        Yields:
+            Полная информация о фильме в виде строки БД.
+        """
         sql = """
             SELECT
                 fw.id,
@@ -174,9 +209,20 @@ class PostgresLoader:
                 for row in rows:
                     yield row
 
-    def _bunchify(self, gen, bunch_size: int = 100):
+    def _bunchify(
+            self, rows: Iterable[RealDictRow], bunch_size: int = 100,
+            ) -> list[RealDictRow]:
+        """Связать строки списка в подсписки указанного размера.
+
+        Args:
+            rows: Итератор из строк.
+            bunch_size: Размер возвращаемого списка.
+
+        Yields:
+            Подсписок строк.
+        """
         bunch = []
-        for row in gen:
+        for row in rows:
             bunch.append(row)
             if len(bunch) >= bunch_size:
                 yield bunch
@@ -184,8 +230,16 @@ class PostgresLoader:
         if bunch:
             yield bunch
 
-    def _split_bunch(self, bunches):
+    def _split_bunch(self, bunches: Iterable[list]) -> (list[str], str):
+        """Выделить ID и дату модификации из связок строк БД.
+
+        Args:
+            bunches: Iterable связки строк БД.
+
+        Yields:
+            Список ID фильмов и минимальная дата модификации для них.
+        """
         for bunch in bunches:
             fw_ids, modified_dates = zip(*(row.values() for row in bunch))
-            genre_since = modified_dates[0]
-            yield fw_ids, genre_since
+            since = modified_dates[0]
+            yield fw_ids, since
