@@ -110,8 +110,8 @@ class PostgresLoader:
         rows = self._execute_sql(sql, values)
         yield from rows
 
-    def ids_for_new_genres(
-        self, since: str = EPOCH, bunch_size: int = 1,
+    def _rows_for_genre_since(
+        self, since: str = EPOCH, bunch_size: int = 3,
     ) -> list[RealDictRow]:
         """
         """
@@ -133,6 +133,13 @@ class PostgresLoader:
             if len(bunch) >= bunch_size:
                 yield bunch
                 bunch = []
-        yield bunch
+        if bunch:
+            yield bunch
 
+    def ids_for_genre_since(self):
+        genres = self.ids_for_new_genres()
+        for rows in genres:
+            fw_ids, modified_dates = zip(*(row.values() for row in rows))
+            genre_since = modified_dates[0]
+            yield fw_ids, genre_since
 
