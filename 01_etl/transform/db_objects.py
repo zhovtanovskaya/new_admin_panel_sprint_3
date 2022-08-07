@@ -10,7 +10,7 @@ from dateutil.parser import parse
 class DBData:
     """Базовый класс для объектного представления таблиц БД."""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Сделать изменения после инициализации."""
         # Привести к типу `datetime` строковые значения
         # полей с датами.  Указания типа поля `datetime`
