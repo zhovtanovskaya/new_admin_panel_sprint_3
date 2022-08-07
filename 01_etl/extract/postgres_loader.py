@@ -41,13 +41,14 @@ class PostgresLoader:
 
     EPOCH = '1970-01-01'
 
-    def __init__(self, connection: pg_connection):
+    def __init__(self, connection: pg_connection, state):
         """Проинициализировать соединение.
 
         Args:
             connection: Подключение к PostgreSQL.
         """
         self.connection = connection
+        self.state = state
 
     def _execute_sql(
             self, sql: str, values: tuple, fetch_size: int = 1,
@@ -110,8 +111,15 @@ class PostgresLoader:
         rows = self._execute_sql(sql, values)
         yield from rows
 
+    def load_all(self):
+        genre_since = self.state.get_state('genre_since') or self.EPOCH
+        for ids, genre_since in self.ids_for_genre_since(genre_since):
+            yield from self.get_film_works(ids)
+            self.state.set_state('genre_since', genre_since)
+            print(genre_since)
+
     def _rows_for_genre_since(
-        self, since: str = EPOCH, bunch_size: int = 3,
+        self, since: str = EPOCH, bunch_size: int = 100,
     ) -> list[RealDictRow]:
         """
         """
@@ -136,8 +144,8 @@ class PostgresLoader:
         if bunch:
             yield bunch
 
-    def ids_for_genre_since(self):
-        genres = self.ids_for_new_genres()
+    def ids_for_genre_since(self, since):
+        genres = self._rows_for_genre_since(since)
         for rows in genres:
             fw_ids, modified_dates = zip(*(row.values() for row in rows))
             genre_since = modified_dates[0]
