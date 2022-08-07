@@ -31,7 +31,7 @@ def backoff(
     Returns:
         Результат выполнения функции.
     """
-    def func_wrapper(func):
+    def func_wrapper(func: Callable[[F], F]) -> Callable[[F], F]:
         @wraps(func)
         def inner(*args, **kwargs):
             sleep_time = start_sleep_time
