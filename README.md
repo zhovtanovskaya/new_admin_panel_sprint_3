@@ -8,7 +8,8 @@
 копирование:
 
 ```
-cp .env.example .env
+cp .env.example .env            # Окружение для контейнеров Docker Compose.
+cp .env.dev.example .env.dev    # Окружение для доступа к контейнерам с хоста.
 ```
 
 Затем впишите в него свои параметры подключения к базам данных.
@@ -47,13 +48,4 @@ docker run -d \
 cd simple_project/
 psql -h 127.0.0.1 -U $POSTGRES_USER -d $POSTGRES_DB -f database/create_schema.ddl
 ./app/manage.py migrate
-```
-
-# Elastic Search
-
-```
-docker run \
-    -p 9200:9200 
-    -e "discovery.type=single-node" \
-    docker.io/elastic/elasticsearch:7.7.0
 ```
