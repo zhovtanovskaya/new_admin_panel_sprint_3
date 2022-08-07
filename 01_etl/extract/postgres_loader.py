@@ -1,12 +1,11 @@
 """Подключение и чтение из PostgreSQL."""
 
-from contextlib import contextmanager
 from collections.abc import Iterable
+from contextlib import contextmanager
 
 import psycopg2
 from psycopg2.extensions import connection as pg_connection
 from psycopg2.extras import RealDictCursor, RealDictRow
-
 from storage import State
 
 
