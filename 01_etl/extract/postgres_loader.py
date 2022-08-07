@@ -50,25 +50,6 @@ class PostgresLoader:
         self.connection = connection
         self.state = state
 
-    def _execute_sql(
-            self, sql: str, values: tuple, fetch_size: int = 1,
-            ) -> RealDictRow:
-        """Запустить SQL.
-
-        Args:
-            sql: SQL-выражение.
-            values: Значения для вставки в SQL-выражение.
-            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
-
-        Yields:
-            Строка результата SQL.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute(sql, values)
-            while rows := cursor.fetchmany(fetch_size):
-                for row in rows:
-                    yield row
-
     def load_all(self):
         genre_since = self.state.get_state('genre_since') or self.EPOCH
         for ids, genre_since in self.ids_for_genre_since(genre_since):
@@ -86,8 +67,8 @@ class PostgresLoader:
             self.state.set_state('film_work_since', film_work_since)
             print('film_since', film_work_since)
 
-    def _rows_for_film_work_since(
-        self, since: str = EPOCH, bunch_size: int = 100,
+    def ids_for_film_work_since(
+        self, since: str = EPOCH,
     ) -> list[RealDictRow]:
         sql = """
             SELECT
@@ -98,10 +79,11 @@ class PostgresLoader:
             ORDER BY fw.modified, fw.id;
         """
         values = (since,)
-        yield from self._bunchify(self._execute_sql(sql, values))
+        bunches = self._bunchify(self._execute_sql(sql, values))
+        yield from self._split_bunch(bunches)
 
-    def _rows_for_genre_since(
-        self, since: str = EPOCH, bunch_size: int = 100,
+    def ids_for_genre_since(
+        self, since: str = EPOCH,
     ) -> list[RealDictRow]:
         """
         """
@@ -116,9 +98,10 @@ class PostgresLoader:
             ORDER BY min_modified, gfw.film_work_id;
         """
         values = (since,)
-        yield from self._bunchify(self._execute_sql(sql, values))
+        bunches = self._bunchify(self._execute_sql(sql, values))
+        yield from self._split_bunch(bunches)
 
-    def _rows_for_person_since(
+    def ids_for_person_since(
         self, since: str = EPOCH,
     ) -> list[RealDictRow]:
         sql = """
@@ -132,35 +115,8 @@ class PostgresLoader:
             ORDER BY min_modified, pfw.film_work_id;
         """
         values = (since,)
-        yield from self._bunchify(self._execute_sql(sql, values))
-
-    def ids_for_genre_since(self, since):
-        gen = self._rows_for_genre_since(since)
-        yield from self._split_rows(gen)
-
-    def ids_for_person_since(self, since):
-        gen = self._rows_for_person_since(since)
-        yield from self._split_rows(gen)
-
-    def ids_for_film_work_since(self, since):
-        gen = self._rows_for_film_work_since(since)
-        yield from self._split_rows(gen)
-
-    def _split_rows(self, bunches):
-        for bunch in bunches:
-            fw_ids, modified_dates = zip(*(row.values() for row in bunch))
-            genre_since = modified_dates[0]
-            yield fw_ids, genre_since
-
-    def _bunchify(self, gen, bunch_size: int = 100):
-        bunch = []
-        for row in gen:
-            bunch.append(row)
-            if len(bunch) >= bunch_size:
-                yield bunch
-                bunch = []
-        if bunch:
-            yield bunch
+        bunches = self._bunchify(self._execute_sql(sql, values))
+        yield from self._split_bunch(bunches)
 
     def get_film_works(self, ids):
         sql = """
@@ -196,4 +152,37 @@ class PostgresLoader:
         rows = self._execute_sql(sql, values)
         yield from rows
 
+    def _execute_sql(
+            self, sql: str, values: tuple, fetch_size: int = 1,
+            ) -> RealDictRow:
+        """Запустить SQL.
 
+        Args:
+            sql: SQL-выражение.
+            values: Значения для вставки в SQL-выражение.
+            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
+
+        Yields:
+            Строка результата SQL.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql, values)
+            while rows := cursor.fetchmany(fetch_size):
+                for row in rows:
+                    yield row
+
+    def _bunchify(self, gen, bunch_size: int = 100):
+        bunch = []
+        for row in gen:
+            bunch.append(row)
+            if len(bunch) >= bunch_size:
+                yield bunch
+                bunch = []
+        if bunch:
+            yield bunch
+
+    def _split_bunch(self, bunches):
+        for bunch in bunches:
+            fw_ids, modified_dates = zip(*(row.values() for row in bunch))
+            genre_since = modified_dates[0]
+            yield fw_ids, genre_since
