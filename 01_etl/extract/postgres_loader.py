@@ -7,6 +7,12 @@ from psycopg2.extensions import connection as pg_connection
 from psycopg2.extras import RealDictCursor, RealDictRow
 
 
+class StateKeys:
+    FILM_WORK = 'film_work_since'
+    PERSON = 'person_work_since'
+    GENRE = 'genre_since'
+    
+
 def create_connection(dsl: dict) -> pg_connection:
     """Создать подключение к базе PostgreSQL.
 
@@ -51,21 +57,18 @@ class PostgresLoader:
         self.state = state
 
     def load_all(self):
-        genre_since = self.state.get_state('genre_since') or self.EPOCH
+        genre_since = self.state.get_state(StateKeys.GENRE) or self.EPOCH
         for ids, genre_since in self.ids_for_genre_since(genre_since):
             yield from self.get_film_works(ids)
-            self.state.set_state('genre_since', genre_since)
-            print('genre_since', genre_since)
-        person_since = self.state.get_state('person_since') or self.EPOCH
+            self.state.set_state(StateKeys.GENRE, genre_since)
+        person_since = self.state.get_state(StateKeys.PERSON) or self.EPOCH
         for ids, person_since in self.ids_for_person_since(person_since):
             yield from self.get_film_works(ids)
-            self.state.set_state('person_since', person_since)
-            print('person_since', person_since)
-        film_work_since = self.state.get_state('film_work_since') or self.EPOCH
+            self.state.set_state(StateKeys.PERSON, person_since)
+        film_work_since = self.state.get_state(StateKeys.FILM_WORK) or self.EPOCH
         for ids, film_work_since in self.ids_for_film_work_since(film_work_since):
             yield from self.get_film_works(ids)
-            self.state.set_state('film_work_since', film_work_since)
-            print('film_since', film_work_since)
+            self.state.set_state(StateKeys.FILM_WORK, film_work_since)
 
     def ids_for_film_work_since(
         self, since: str = EPOCH,
