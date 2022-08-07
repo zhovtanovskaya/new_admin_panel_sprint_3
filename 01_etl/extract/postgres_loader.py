@@ -143,3 +143,38 @@ class PostgresLoader:
             genre_since = modified_dates[0]
             yield fw_ids, genre_since
 
+    def get_film_works(self, ids):
+        sql = """
+            SELECT
+                fw.id,
+                fw.title,
+                fw.description,
+                fw.rating,
+                fw.type,
+                fw.created,
+                fw.modified,
+                COALESCE (
+                   json_agg(
+                       DISTINCT jsonb_build_object(
+                           'role', pfw.role,
+                           'id', p.id,
+                           'name', p.full_name
+                       )
+                   ) FILTER (WHERE p.id is not null),
+                   '[]'
+                ) as persons,
+                json_agg(DISTINCT g.name) as genres
+            FROM content.film_work fw
+            LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
+            LEFT JOIN content.person p ON p.id = pfw.person_id
+            LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
+            LEFT JOIN content.genre g ON g.id = gfw.genre_id
+            WHERE fw.id IN %s
+            GROUP BY fw.id
+            ORDER BY fw.modified;
+        """
+        values = (tuple(ids),)
+        rows = self._execute_sql(sql, values)
+        yield from rows
+
+

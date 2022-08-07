@@ -10,6 +10,9 @@ class TestPostgresLoader(TestCase):
         connection = create_connection(POSTGRES_DB)
         self.loader = PostgresLoader(connection)
 
+
+class TestPostgresLoaderLoad(TestPostgresLoader):
+
     def test_load_top(self):
         row = next(self.loader.load())
         self.assertEqual('Star Wars: Episode IV - A New Hope', row['title'])
@@ -19,10 +22,7 @@ class TestPostgresLoader(TestCase):
         self.assertEqual('Star Trek', row['title'])
 
 
-class TestPostgresLoaderRowsForGenreSince(TestCase):
-    def setUp(self):
-        connection = create_connection(POSTGRES_DB)
-        self.loader = PostgresLoader(connection)
+class TestPostgresLoaderRowsForGenreSince(TestPostgresLoader):
 
     def test_top_ids(self):
         ids = self.loader._rows_for_genre_since(bunch_size=2)
@@ -40,13 +40,16 @@ class TestPostgresLoaderRowsForGenreSince(TestCase):
         self.assertNotEqual(since_ids, top_ids)
 
 
-class TestPostgresLoaderIDsForGenreSince(TestCase):
-    def setUp(self):
-        connection = create_connection(POSTGRES_DB)
-        self.loader = PostgresLoader(connection)
-
+class TestPostgresLoaderIDsForGenreSince(TestPostgresLoader):
     def test_load(self):
-        self.loader.ids_for_genre_since()
+        next(self.loader.ids_for_genre_since())
+
+
+class TestPostgresLoaderGetFilmWorks(TestPostgresLoader):
+    def test(self):
+        ids = ['3fd7c00f-aaff-4798-a9b7-5cf29a832698']
+        film_work_row = next(self.loader.get_film_works(ids))
+        self.assertEqual(ids[0], film_work_row['id'])
 
 if __name__ == '__main__':
     main()
