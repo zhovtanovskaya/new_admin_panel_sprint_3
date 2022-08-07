@@ -122,7 +122,25 @@ class PostgresLoader:
             yield from self.get_film_works(ids)
             self.state.set_state('person_since', person_since)
             print('person_since', person_since)
-        
+        film_work_since = self.state.get_state('film_work_since') or self.EPOCH
+        for ids, film_work_since in self.ids_for_film_work_since(film_work_since):
+            yield from self.get_film_works(ids)
+            self.state.set_state('film_work_since', film_work_since)
+            print('film_since', film_work_since)
+
+    def _rows_for_film_work_since(
+        self, since: str = EPOCH, bunch_size: int = 100,
+    ) -> list[RealDictRow]:
+        sql = """
+            SELECT
+                fw.id,
+                fw.modified
+            FROM film_work fw
+            WHERE fw.modified >= %s
+            ORDER BY fw.modified, fw.id;
+        """
+        values = (since,)
+        yield from self._bunchify(self._execute_sql(sql, values))
 
     def _rows_for_genre_since(
         self, since: str = EPOCH, bunch_size: int = 100,
@@ -164,6 +182,10 @@ class PostgresLoader:
 
     def ids_for_person_since(self, since):
         gen = self._rows_for_person_since(since)
+        yield from self._split_rows(gen)
+
+    def ids_for_film_work_since(self, since):
+        gen = self._rows_for_film_work_since(since)
         yield from self._split_rows(gen)
 
     def _split_rows(self, bunches):
