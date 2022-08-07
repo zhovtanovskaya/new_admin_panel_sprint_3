@@ -1,3 +1,4 @@
+from itertools import chain
 from unittest import TestCase, main
 
 from extract.postgres_loader import PostgresLoader, create_connection
@@ -16,6 +17,28 @@ class TestPostgresLoader(TestCase):
     def test_load_since(self):
         row = next(self.loader.load(since='2021-06-16 20:14:09.222232+00'))
         self.assertEqual('Star Trek', row['title'])
+
+
+class TestPostgresLoaderIdsForNewGenres(TestCase):
+    def setUp(self):
+        connection = create_connection(POSTGRES_DB)
+        self.loader = PostgresLoader(connection)
+
+    def test_top_ids(self):
+        ids = self.loader.ids_for_new_genres(bunch_size=2)
+        two_ids = next(ids)
+        ids = self.loader.ids_for_new_genres(bunch_size=1)
+        one_by_one_ids = list(chain(next(ids), next(ids)))
+        self.assertEqual(two_ids, one_by_one_ids)
+
+    def test_since_ids(self):
+        since = '2021-06-16 20:14:09.310212+00:00'
+        ids = self.loader.ids_for_new_genres(since=since, bunch_size=1)
+        since_ids = next(ids)
+        ids = self.loader.ids_for_new_genres(bunch_size=1)
+        top_ids = next(ids)
+        self.assertNotEqual(since_ids, top_ids)
+
 
 
 if __name__ == '__main__':

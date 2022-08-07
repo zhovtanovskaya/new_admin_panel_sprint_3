@@ -108,5 +108,31 @@ class PostgresLoader:
         """
         values = (since or self.EPOCH,)
         rows = self._execute_sql(sql, values)
+        yield from rows
+
+    def ids_for_new_genres(
+        self, since: str = EPOCH, bunch_size: int = 1,
+    ) -> list[RealDictRow]:
+        """
+        """
+        sql = """
+            SELECT
+                gfw.film_work_id,
+                min(g.modified) min_modified
+            FROM genre g
+            INNER JOIN genre_film_work gfw ON g.id = gfw.genre_id
+            WHERE g.modified >= %s
+            GROUP BY gfw.film_work_id
+            ORDER BY min_modified, gfw.film_work_id;
+        """
+        values = (since,)
+        rows = self._execute_sql(sql, values)
+        bunch = []
         for row in rows:
-            yield row
+            bunch.append(row)
+            if len(bunch) >= bunch_size:
+                yield bunch
+                bunch = []
+        yield bunch
+
+
