@@ -1,0 +1,10 @@
+__pycache__
+.idea/
+*.pyc
+.env*
+snippets/
+static/
+*.mo
+test_db.sqlite
+.DS_Store
+state.json
