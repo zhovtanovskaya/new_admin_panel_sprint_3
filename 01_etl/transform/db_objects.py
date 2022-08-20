@@ -1,10 +1,12 @@
 """Python-представление данных о фильмах."""
 
+from typing import Optional
 import uuid
 from dataclasses import dataclass, field, fields
 from datetime import datetime
 
 from dateutil.parser import parse
+from pydantic import BaseModel
 
 
 class DBData:
@@ -92,3 +94,17 @@ class FilmWork(DBData):
         for doc_attr, obj_attr in doc_mapping.items():
             doc[doc_attr] = getattr(self, obj_attr, [])
         return doc
+
+
+class Genre(BaseModel):
+    """Объектное представление строк таблицы genre."""
+
+    id: uuid.UUID
+    name: str
+    description: Optional[str] = ''
+
+    film_ids: list[str] = []
+
+    def as_document(self) -> dict:
+        """Костыль, чтобы использовать параллельно с dataclsses."""
+        return self.dict()
