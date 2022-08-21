@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Iterable
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Generator
 
 import psycopg2
 from psycopg2.extensions import connection as pg_connection
