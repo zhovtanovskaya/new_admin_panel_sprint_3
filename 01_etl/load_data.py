@@ -2,20 +2,20 @@
 
 import logging
 import time
+
 from elasticsearch.exceptions import ConnectionError
 from psycopg2 import OperationalError
 
 import settings
 from availability.backoff import backoff
+from extract.postgres_genre_loader import PostgresGenreLoader
 from extract.postgres_loader import PostgresLoader, postgres_connection
 from extract.postgres_movie_loader import PostgresMovieLoader
-from extract.postgres_genre_loader import PostgresGenreLoader
+from extract.postgres_person_loader import PostgresPersonLoader
 from load.elastic_search_saver import (ElasticSearchSaver,
                                        elastic_search_connection)
-from storage import JsonFileStorage, State
-from transform.db_objects import FilmWork, Genre
-
 from logger import logger
+from storage import JsonFileStorage, State
 
 logging.basicConfig(**logger.settings)
 
@@ -50,6 +50,7 @@ def etl() -> None:
         index_loaders = (
             PostgresMovieLoader,
             PostgresGenreLoader,
+            PostgresPersonLoader,
         )
 
         state = State(JsonFileStorage(settings.STATE_FILE))
