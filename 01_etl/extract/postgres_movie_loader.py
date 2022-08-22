@@ -1,4 +1,4 @@
-"""Подключение и чтение из PostgreSQL."""
+"""Сбор информации о фильмах из базы данных Postgresql."""
 
 from typing import Generator
 from psycopg2.extras import RealDictRow

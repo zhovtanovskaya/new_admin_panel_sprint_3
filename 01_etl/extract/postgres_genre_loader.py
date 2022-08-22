@@ -1,4 +1,4 @@
-"""Подключение и чтение из PostgreSQL."""
+"""Сбор информации о жанрах из базы данных Postgresql."""
 
 from typing import Generator
 from psycopg2.extras import RealDictRow
@@ -96,12 +96,11 @@ class PostgresGenreLoader(PostgresLoader):
                 genre.name,
                 genre.description,
                 COALESCE(
-                    JSON_AGG(DISTINCT fw.id),
+                    JSON_AGG(DISTINCT gfw.film_work_id),
                     '{}'
                 ) as film_ids
             FROM genre
             LEFT JOIN genre_film_work gfw ON gfw.genre_id = genre.id
-            LEFT JOIN film_work fw ON fw.id = gfw.film_work_id
             WHERE genre.id IN %s
             GROUP BY genre.id
             ORDER BY genre.modified;

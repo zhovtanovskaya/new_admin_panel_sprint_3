@@ -44,14 +44,14 @@ def postgres_connection(dsl: dict) -> Generator[pg_connection, None, None]:
 
 
 class PostgresLoader:
-    """Класс, загружающий фильмы из PostgreSQL."""
+    """Класс, загружающий объекты из PostgreSQL."""
 
     def __init__(self, connection: pg_connection, state: State):
         """Проинициализировать соединение и состояние.
 
         Args:
             connection: Подключение к PostgreSQL.
-            state: Хранилище, для сохранения состояния импорта фильмов.
+            state: Хранилище, для сохранения состояния импорта объектов.
         """
         self.connection = connection
         self.state = state
@@ -67,7 +67,7 @@ class PostgresLoader:
         Args:
             sql: SQL-выражение.
             values: Значения для вставки в SQL-выражение.
-            fetch_size: По сколько фильмов выбирать из SQL-запроса за раз.
+            fetch_size: По сколько объектов выбирать из SQL-запроса за раз.
 
         Yields:
             Строка результата SQL.
