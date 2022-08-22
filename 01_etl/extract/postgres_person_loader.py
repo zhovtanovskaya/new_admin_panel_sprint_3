@@ -1,4 +1,4 @@
-"""Подключение и чтение из PostgreSQL."""
+"""Сбор информации о персонах из базы данных Postgresql."""
 
 from typing import Generator
 from psycopg2.extras import RealDictRow
@@ -99,12 +99,11 @@ class PostgresPersonLoader(PostgresLoader):
                     '{}'
                 ) as role,
                 COALESCE(
-                    JSON_AGG(DISTINCT fw.id),
+                    JSON_AGG(DISTINCT pfw.film_work_id),
                     '{}'
                 ) as film_ids
             FROM person
             LEFT JOIN person_film_work pfw ON pfw.person_id = person.id
-            LEFT JOIN film_work fw ON fw.id = pfw.film_work_id
             WHERE person.id IN %s
             GROUP BY person.id
             ORDER BY person.modified;
