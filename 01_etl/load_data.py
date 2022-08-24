@@ -19,6 +19,7 @@ from logger import logger
 
 logging.basicConfig(**logger.settings)
 
+
 def load(
         loader: PostgresLoader, saver: ElasticSearchSaver,
         ) -> None:
@@ -31,7 +32,7 @@ def load(
     validator = loader.validator
     for row in loader.load_all():
         obj = validator(**row)
-        saver.save(obj.as_document())
+        saver.save(obj.dict())
         if saver.is_batch_ready():
             saver.flush()
     saver.flush()
@@ -42,6 +43,8 @@ def load(
 def etl() -> None:
     """Инициировать загрузку фильмов из PostgreSQL в ElasticSearch."""
     logging.info(f'Initializing postgresql and elasticsearch connection.')
+    logging.info(settings.POSTGRES_DB)
+    logging.info(settings.ELASTIC_HOST)
 
     with (
         postgres_connection(settings.POSTGRES_DB) as pg_conn,

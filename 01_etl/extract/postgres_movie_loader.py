@@ -124,26 +124,68 @@ class PostgresMovieLoader(PostgresLoader):
                 fw.id,
                 fw.title,
                 fw.description,
-                fw.rating,
+                fw.rating as imdb_rating,
                 fw.type,
-                fw.created,
-                fw.modified,
                 COALESCE (
-                   json_agg(
-                       DISTINCT jsonb_build_object(
-                           'role', pfw.role,
-                           'id', p.id,
-                           'name', p.full_name
-                       )
-                   ) FILTER (WHERE p.id is not null),
-                   '[]'
-                ) as persons,
-                json_agg(DISTINCT g.name) as genres
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', person.id,
+                            'name', person.full_name
+                        )
+                    ) FILTER (WHERE person.id is not null AND pfw.role = 'actor'),
+                    '[]'
+                ) as actors,
+                COALESCE (
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', person.id,
+                            'name', person.full_name
+                        )
+                    ) FILTER (WHERE person.id is not null AND pfw.role = 'writer'),
+                    '[]'
+                ) as writers,
+                COALESCE (
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', person.id,
+                            'name', person.full_name
+                        )
+                    ) FILTER (WHERE person.id is not null AND pfw.role = 'director'),
+                    '[]'
+                ) as directors,
+                COALESCE (
+                    json_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', genre.id,
+                            'name', genre.name
+                        )
+                    ) FILTER (WHERE genre.id is not null),
+                    '[]'
+                ) as genres,
+                COALESCE (
+                    ARRAY_AGG(DISTINCT person.full_name)
+                        FILTER (WHERE person.id is not null AND pfw.role = 'actor'),
+                    '{}'
+                ) as actors_names,
+                COALESCE (
+                    ARRAY_AGG(DISTINCT person.full_name)
+                        FILTER (WHERE person.id is not null AND pfw.role = 'writer'),
+                    '{}'
+                ) as writers_names,
+                COALESCE (
+                    ARRAY_AGG(DISTINCT person.full_name)
+                        FILTER (WHERE person.id is not null AND pfw.role = 'director'),
+                    '{}'
+                ) as directors_names,
+                COALESCE (
+                    ARRAY_AGG (DISTINCT genre.name),
+                    '{}'
+                ) as genre_names
             FROM content.film_work fw
             LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
-            LEFT JOIN content.person p ON p.id = pfw.person_id
+            LEFT JOIN content.person person ON person.id = pfw.person_id
             LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
-            LEFT JOIN content.genre g ON g.id = gfw.genre_id
+            LEFT JOIN content.genre genre ON genre.id = gfw.genre_id
             WHERE fw.id IN %s
             GROUP BY fw.id
             ORDER BY fw.modified;
