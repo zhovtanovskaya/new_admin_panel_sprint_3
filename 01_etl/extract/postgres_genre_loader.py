@@ -27,9 +27,6 @@ class PostgresGenreLoader(PostgresLoader):
         Yields:
             Строка базы данных с информацией о жанре.
         """
-        # если у жанра меняется состав фильмов, в которых он прикреплён,
-        # то эти изменения мы отслеживаем в объекте жанра, потому что так
-        # отрабатывает orm django.
         film_work_since = self.state.get_state(StateKeys.FILM_WORK) or EPOCH
         for ids, film_work_since in self.ids_for_film_work_since(film_work_since):
             yield from self.get_genres(ids)
