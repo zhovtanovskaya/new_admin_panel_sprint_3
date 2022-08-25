@@ -61,9 +61,6 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
       "imdb_rating": {
         "type": "float"
       },
-      "genre": {
-        "type": "keyword"
-      },
       "title": {
         "type": "text",
         "analyzer": "ru_en",
@@ -77,6 +74,9 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
         "type": "text",
         "analyzer": "ru_en"
       },
+      "genre": {
+        "type": "keyword"
+      },
       "director": {
         "type": "text",
         "analyzer": "ru_en"
@@ -88,6 +88,18 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
       "writers_names": {
         "type": "text",
         "analyzer": "ru_en"
+      },
+      "genres": {
+        "type": "nested",
+        "dynamic": "strict",
+        "properties": {
+          "id": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword"
+          }
+        }
       },
       "actors": {
         "type": "nested",
