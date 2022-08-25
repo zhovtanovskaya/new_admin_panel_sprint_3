@@ -27,6 +27,10 @@ class PostgresGenreLoader(PostgresLoader):
         Yields:
             Строка базы данных с информацией о жанре.
         """
+        # При добавлении/удалении жанра у фильма в базе, меняется
+        # film_work.modified.  И в ответ на добавление/удаление жанра
+        # у фильма, нужно обновить список фильмов у жарнра в индексе
+        # genre.
         film_work_since = self.state.get_state(StateKeys.FILM_WORK) or EPOCH
         for ids, film_work_since in self.ids_for_film_work_since(film_work_since):
             yield from self.get_genres(ids)
