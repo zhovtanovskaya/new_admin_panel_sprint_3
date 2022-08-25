@@ -2,7 +2,7 @@
 
 import uuid
 from contextlib import contextmanager
-from typing import Union
+from typing import Generator, Union
 
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch.exceptions import NotFoundError
@@ -22,7 +22,7 @@ def create_connection(host: dict) -> Elasticsearch:
 
 
 @contextmanager
-def elastic_search_connection(host: dict) -> Elasticsearch:
+def elastic_search_connection(host: dict) -> Generator[Elasticsearch, None, None]:
     """Создает подключение к ElasticSearch, которое закроет на выходе.
 
     Args:
@@ -39,7 +39,7 @@ def elastic_search_connection(host: dict) -> Elasticsearch:
 class ElasticSearchSaver:
     """Загрузчик фильмов в индекс ElasticSearch."""
 
-    def __init__(self, es_client: Elasticsearch, batch_size=100):
+    def __init__(self, es_client: Elasticsearch, index: str, batch_size=100):
         """Инициализация атрибутов класса.
 
         Args:
@@ -47,7 +47,7 @@ class ElasticSearchSaver:
             batch_size: Размер буфера для сохраняемых объектов.
         """
         self.client = es_client
-        self.index = 'movies'
+        self.index = index
         self._documents = []
         self._batch_size = batch_size
 
@@ -69,7 +69,7 @@ class ElasticSearchSaver:
 
     def flush(self) -> None:
         """Сохранить все объекты из буфера в ElasticSearch."""
-        def get_actions(documents: list[dict]) -> dict:
+        def get_actions(documents: list[dict]) -> Generator[dict, None, None]:
             for document in documents:
                 action = {
                     '_index': self.index,
@@ -88,7 +88,7 @@ class ElasticSearchSaver:
             id: Идентификатор документа.
 
         Returns:
-            Документ Elastic Search.  Или None, если он не существует.
+            Документ Elastic Search или None, если он не существует.
         """
         try:
             return self.client.get(index=self.index, id=str(id))
