@@ -27,9 +27,10 @@ class PostgresPersonLoader(PostgresLoader):
         Yields:
             Строка базы данных с информацией о персоне.
         """
-        # если у персоны меняется состав фильмов, в которых она участвует,
-        # то эти изменения мы отслеживаем в объекте персоны, потому что так
-        # отрабатывает orm django.
+        # Ожидается, что при добавлении/удалении персоны у фильма в базе, 
+        # меняется film_work.modified.  И в ответ на добавление/удаление
+        # персоны у фильма, нужно обновить список фильмов у этой персоны
+        # в индексе.
         film_work_since = self.state.get_state(StateKeys.FILM_WORK) or EPOCH
         for ids, film_work_since in self.ids_for_film_work_since(film_work_since):
             yield from self.get_persons(ids)
