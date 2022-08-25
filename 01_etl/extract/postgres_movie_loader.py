@@ -180,7 +180,7 @@ class PostgresMovieLoader(PostgresLoader):
                 COALESCE (
                     ARRAY_AGG (DISTINCT genre.name),
                     '{}'
-                ) as genres_names
+                ) as genre_names
             FROM content.film_work fw
             LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
             LEFT JOIN content.person person ON person.id = pfw.person_id
