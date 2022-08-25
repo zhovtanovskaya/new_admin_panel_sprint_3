@@ -61,6 +61,9 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
       "imdb_rating": {
         "type": "float"
       },
+      "genre": {
+        "type": "keyword"
+      },
       "title": {
         "type": "text",
         "analyzer": "ru_en",
@@ -74,7 +77,7 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
         "type": "text",
         "analyzer": "ru_en"
       },
-      "genres_names": {
+      "director": {
         "type": "text",
         "analyzer": "ru_en"
       },
@@ -82,41 +85,11 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
         "type": "text",
         "analyzer": "ru_en"
       },
-      "directors_names": {
-        "type": "text",
-        "analyzer": "ru_en"
-      },
       "writers_names": {
         "type": "text",
         "analyzer": "ru_en"
       },
-      "genres": {
-        "type": "nested",
-        "dynamic": "strict",
-        "properties": {
-          "id": {
-            "type": "keyword"
-          },
-          "name": {
-            "type": "text",
-            "analyzer": "ru_en"
-          }
-        }
-      },
       "actors": {
-        "type": "nested",
-        "dynamic": "strict",
-        "properties": {
-          "id": {
-            "type": "keyword"
-          },
-          "name": {
-            "type": "text",
-            "analyzer": "ru_en"
-          }
-        }
-      },
-      "directors": {
         "type": "nested",
         "dynamic": "strict",
         "properties": {
