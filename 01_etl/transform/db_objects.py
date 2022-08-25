@@ -32,6 +32,7 @@ class FilmWork(DBData):
     description: str
     type: str
     genre: list[str]
+    genres: list[dict]
     persons: list[dict]
     created: datetime = field(default_factory=datetime.now)
     modified: datetime = field(default_factory=datetime.now)
@@ -82,6 +83,7 @@ class FilmWork(DBData):
             'id': 'id',
             'imdb_rating': 'rating',
             'genre': 'genre',
+            'genres': 'genres',
             'title': 'title',
             'description': 'description',
             'director': 'director',
