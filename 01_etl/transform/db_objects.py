@@ -108,3 +108,17 @@ class Genre(BaseModel):
     def as_document(self) -> dict:
         """Костыль, чтобы использовать параллельно с dataclsses."""
         return self.dict()
+
+
+class Person(BaseModel):
+    """Объектное представление строк таблицы genre."""
+
+    id: uuid.UUID
+    full_name: str
+
+    role: list[str] = []
+    film_ids: list[str] = []
+
+    def as_document(self) -> dict:
+        """Костыль, чтобы использовать параллельно с dataclsses."""
+        return self.dict()
