@@ -3,7 +3,7 @@ services:
   etl:
     build: ./01_etl
     env_file:
-      - .env
+      - .env.docker
     networks:
       - simple_project_network
 
