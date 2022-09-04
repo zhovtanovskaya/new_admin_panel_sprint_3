@@ -121,4 +121,9 @@ class Person(BaseModel):
 
     def as_document(self) -> dict:
         """Костыль, чтобы использовать параллельно с dataclsses."""
-        return self.dict()
+        return {
+            'id': self.id,
+            'name': self.full_name,
+            'role': self.role,
+            'film_ids': self.film_ids,
+        }
