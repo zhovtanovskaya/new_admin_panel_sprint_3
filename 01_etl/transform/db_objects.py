@@ -42,6 +42,7 @@ class FilmWork(DBData):
         """Проинициализировать атрибуты фильма, нужные для ElasticSearch."""
         super().__post_init__()
         # Разделить self.persons на списки имен и объектов по ролям персон.
+        # Соответсвие поля в Elastic полю в PostgreSQL.
         role_to_names_map = {
             'director': 'director',
             'actor': 'actors_names',
@@ -78,6 +79,7 @@ class FilmWork(DBData):
         Returns:
             Документ ElasticSearch в виде dict.
         """
+        # Соответсвие поля в Elastic полю в PostgreSQL.
         doc_mapping = {
             'id': 'id',
             'imdb_rating': 'rating',

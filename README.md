@@ -8,15 +8,21 @@
 копирование:
 
 ```
-cp .env.example .env            # Окружение для контейнеров Docker Compose.
-cp .env.dev.example .env.dev    # Окружение для доступа к контейнерам с хоста.
+cp .env.example .env                 # Окружение для доступа к контейнерам с хоста.
+cp .env.docker.example .env.docker   # Окружение для контейнеров Docker Compose.
 ```
 
 Затем впишите в него свои параметры подключения к базам данных.
 
-# Команды
+# Docker
 
-Запустить перенос данных из PostgreSQL в ElasticSearch:
+```
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
+# Запустить ETL
+
+Запустить перенос данных из PostgreSQL в ElasticSearch на хосте:
 
 ```
 cd 01_etl/
